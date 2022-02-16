@@ -1,4 +1,4 @@
-# MessagePack for Lua 5.3
+# MessagePack for Lua 5.3 / 5.4
 
 ## Overview
 
@@ -7,7 +7,7 @@ This is a pure Lua implementation for encoding/decoding MessagePack (https://msg
 Please report any bugs you encounter!
 
 Features:
-- written in pure Lua 5.3 (using ```string.pack()``` / ```string.unpack()```)
+- written in pure Lua 5.3 / 5.4 (using ```string.pack()``` / ```string.unpack()```)
 - can distinguish between integer / float / double numbers
 - can distinguish between UTF-8 strings and binary data
 - public domain license (http://unlicense.org)
