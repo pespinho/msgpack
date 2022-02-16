@@ -1,6 +1,6 @@
 --[[----------------------------------------------------------------------------
 
-	MessagePack encoder / decoder written in pure Lua 5.3
+	MessagePack encoder / decoder written in pure Lua 5.3 / Lua 5.4
 	written by Sebastian Steinhauer <s.steinhauer@yahoo.de>
 
 	This is free and unencumbered software released into the public domain.
@@ -134,9 +134,9 @@ local encoder_functions = {
 			if length < 16 then
 				return pack('>B', 0x90 + length) .. tconcat(elements)
 			elseif length < 65536 then
-				return pack('>Bi2', 0xdc, length) .. tconcat(elements)
+				return pack('>BI2', 0xdc, length) .. tconcat(elements)
 			else
-				return pack('>Bi4', 0xdd, length) .. tconcat(elements)
+				return pack('>BI4', 0xdd, length) .. tconcat(elements)
 			end
 		else -- encode as a map
 			local elements = {}
@@ -149,9 +149,9 @@ local encoder_functions = {
 			if length < 16 then
 				return pack('>B', 0x80 + length) .. tconcat(elements)
 			elseif length < 65536 then
-				return pack('>Bi2', 0xde, length) .. tconcat(elements)
+				return pack('>BI2', 0xde, length) .. tconcat(elements)
 			else
-				return pack('>Bi4', 0xdf, length) .. tconcat(elements)
+				return pack('>BI4', 0xdf, length) .. tconcat(elements)
 			end
 		end
 	end,
@@ -319,7 +319,7 @@ end
 --]]----------------------------------------------------------------------------
 return {
 	_AUTHOR = 'Sebastian Steinhauer <s.steinhauer@yahoo.de>',
-	_VERSION = '0.6.0',
+	_VERSION = '0.6.1',
 
 	-- primary encode function
 	encode = function(...)

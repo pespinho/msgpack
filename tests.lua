@@ -188,38 +188,38 @@ end
 
 -- test array 16
 do
-	local array = {}; for i = 1, 1024 do array[i] = i end -- prepare test array
+	local array = {}; for i = 1, 0xffff do array[i] = i end -- prepare test array
 	local bytes = assert(msgpack.encode(array))
 	assert(string.byte(bytes) == 0xdc)
 	array = assert(msgpack.decode(bytes))
-	for i = 1, 128 do assert(array[i], i) end
+	for i = 1, 0xffff do assert(array[i], i) end
 end
 
 -- test array 32
 do
-	local array = {}; for i = 1, 1024 * 128 do array[i] = i end -- prepare test array
+	local array = {}; for i = 1, 0x10000 do array[i] = i end -- prepare test array
 	local bytes = assert(msgpack.encode(array))
 	assert(string.byte(bytes) == 0xdd)
 	array = assert(msgpack.decode(bytes))
-	for i = 1, 1024 * 128 do assert(array[i], i) end
+	for i = 1, 0x10000 do assert(array[i], i) end
 end
 
 -- test map 16
 do
-	local map = {}; for i = 1, 1024 do map['item_' .. i] = i end -- prepare test map
+	local map = {}; for i = 1, 0xffff do map['item_' .. i] = i end -- prepare test map
 	local bytes = assert(msgpack.encode(map))
 	assert(string.byte(bytes) == 0xde)
 	map = assert(msgpack.decode(bytes))
-	for i = 1, 128 do assert(map['item_' .. i], i) end
+	for i = 1, 0xffff do assert(map['item_' .. i], i) end
 end
 
 -- test map 32
 do
-	local map = {}; for i = 1, 1024 * 128 do map['item_' .. i] = i end -- prepare test map
+	local map = {}; for i = 1, 0x10000 do map['item_' .. i] = i end -- prepare test map
 	local bytes = assert(msgpack.encode(map))
 	assert(string.byte(bytes) == 0xdf)
 	map = assert(msgpack.decode(bytes))
-	for i = 1, 1024 * 128 do assert(map['item_' .. i], i) end
+	for i = 1, 0x10000 do assert(map['item_' .. i], i) end
 end
 
 -- test fixed strings
