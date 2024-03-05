@@ -43,15 +43,58 @@ local type, pcall, pairs, select = type, pcall, pairs, select
 --]]----------------------------------------------------------------------------
 local encode_value -- forward declaration
 
+local NIL = {} -- unique object to represent nil
+
+local EMPTY_MAP = {} -- unique object to represent an empty map
+
+local function get_type(value)
+    if value == NIL then return 'nil' end
+    if value == EMPTY_MAP then return 'map' end
+    return type(value)
+end
+
 local function is_an_array(value)
-	local expected = 1
-	for k in pairs(value) do
-		if k ~= expected then
-			return false
-		end
-		expected = expected + 1
-	end
-	return true
+    local expected = 1
+    for k in pairs(value) do
+        if k ~= expected then
+            return false
+        end
+        expected = expected + 1
+    end
+    return true
+end
+
+local function encode_array(value)
+    local elements = {}
+    for i, v in pairs(value) do
+        elements[i] = encode_value(v)
+    end
+
+    local length = #elements
+    if length < 16 then
+        return pack('>B', 0x90 + length) .. tconcat(elements)
+    elseif length < 65536 then
+        return pack('>BI2', 0xdc, length) .. tconcat(elements)
+    else
+        return pack('>BI4', 0xdd, length) .. tconcat(elements)
+    end
+end
+
+local function encode_map(value)
+    local elements = {}
+    for k, v in pairs(value) do
+        elements[#elements + 1] = encode_value(k)
+        elements[#elements + 1] = encode_value(v)
+    end
+
+    local length = #elements // 2
+    if length < 16 then
+        return pack('>B', 0x80 + length) .. tconcat(elements)
+    elseif length < 65536 then
+        return pack('>BI2', 0xde, length) .. tconcat(elements)
+    else
+        return pack('>BI4', 0xdf, length) .. tconcat(elements)
+    end
 end
 
 local encoder_functions = {
@@ -125,50 +168,19 @@ local encoder_functions = {
 	end,
 	['table'] = function(value)
 		if is_an_array(value) then -- it seems to be a proper Lua array
-			local elements = {}
-			for i, v in pairs(value) do
-				elements[i] = encode_value(v)
-			end
-
-			local length = #elements
-			if length < 16 then
-				return pack('>B', 0x90 + length) .. tconcat(elements)
-			elseif length < 65536 then
-				return pack('>BI2', 0xdc, length) .. tconcat(elements)
-			else
-				return pack('>BI4', 0xdd, length) .. tconcat(elements)
-			end
+			return encode_array(value)
 		else -- encode as a map
-			local elements = {}
-			for k, v in pairs(value) do
-				elements[#elements + 1] = encode_value(k)
-				elements[#elements + 1] = encode_value(v)
-			end
-
-			local length = #elements // 2
-			if length < 16 then
-				return pack('>B', 0x80 + length) .. tconcat(elements)
-			elseif length < 65536 then
-				return pack('>BI2', 0xde, length) .. tconcat(elements)
-			else
-				return pack('>BI4', 0xdf, length) .. tconcat(elements)
-			end
-		end
+			return encode_map(value)
+        end
+	end,
+	['map'] = function(value)
+		return encode_map(value)
 	end,
 }
 
 encode_value = function(value)
-	return encoder_functions[type(value)](value)
+    return encoder_functions[get_type(value)](value)
 end
-
-local function encode(...)
-	local data = {}
-	for i = 1, select('#', ...) do
-		data[#data + 1] = encode_value(select(i, ...))
-	end
-	return tconcat(data)
-end
-
 
 --[[----------------------------------------------------------------------------
 
@@ -368,6 +380,12 @@ return {
 			return nil, 'cannot decode MessagePack'
 		end
 	end,
+
+    --- an object that is packed as a nil value
+    NIL = NIL,
+
+    --- an object that is packed as an empty map
+    EMPTY_MAP = EMPTY_MAP
 }
 
 --[[----------------------------------------------------------------------------
